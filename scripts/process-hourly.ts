@@ -8,15 +8,18 @@ export interface HourlyRecord {
   zone: string;
   isGameDay: boolean;
   period: "pre-reform" | "post-reform";
-  avgTrans: number;
+  occupancy: number;    // 0–100 (payment occupancy %)
   sampleDays: number;
 }
 
 /**
- * Processes raw transaction files to build hourly activity profiles.
+ * Processes raw transaction files to build hourly payment occupancy profiles.
+ *
+ * For each transaction, we expand it across every hour it covers
+ * (from start hour through expire hour) and count meter-hours occupied.
+ * Occupancy = avg occupied meters at that hour / total meters in zone.
  *
  * Aggregation key: (hour, dow, zone, isGameDay, period)
- * Output: average transactions per hour for each bucket.
  *
  * "pre-reform"  = before Feb 2025 (rates doubled Jan 31 2025)
  * "post-reform" = Feb 2025 onwards
@@ -28,15 +31,27 @@ export function processHourlyActivity(
   poleToLocation: Map<string, MeterLocation>,
   gameDates: Set<string>   // "YYYY-MM-DD" strings of Padres home games
 ): HourlyRecord[] {
-  // key → { totalTrans, uniqueDates: Set<string> }
-  const agg = new Map<string, { totalTrans: number; dates: Set<string> }>();
+  // Meter counts per zone (for occupancy denominator)
+  const zoneMeterCounts = new Map<string, number>();
+  for (const loc of poleToLocation.values()) {
+    if (!loc.zone) continue;
+    zoneMeterCounts.set(loc.zone, (zoneMeterCounts.get(loc.zone) ?? 0) + 1);
+  }
+  const totalMeters = [...zoneMeterCounts.values()].reduce((s, v) => s + v, 0);
+  zoneMeterCounts.set("All", totalMeters);
 
-  const zones = ["All", "Downtown", "Uptown", "Mid-City", "Pacific Beach", "City", "Balboa Park"];
+  const validZones = new Set(["All", "Downtown", "Uptown", "Mid-City", "Pacific Beach", "City", "Balboa Park"]);
+
+  // key → { occupiedSum: number, dates: Set<string> }
+  // occupiedSum = total number of (transaction × hour) overlaps across all sample days
+  // avgOccupied = occupiedSum / sampleDays
+  // occupancy = avgOccupied / meterCount
+  const agg = new Map<string, { occupiedSum: number; dates: Set<string> }>();
 
   function getOrCreate(key: string) {
     let entry = agg.get(key);
     if (!entry) {
-      entry = { totalTrans: 0, dates: new Set() };
+      entry = { occupiedSum: 0, dates: new Set() };
       agg.set(key, entry);
     }
     return entry;
@@ -48,7 +63,7 @@ export function processHourlyActivity(
       continue;
     }
 
-    console.log(`  Processing hourly data for ${year}...`);
+    console.log(`  Processing hourly occupancy for ${year}...`);
 
     const csv = fs.readFileSync(filepath, "utf-8");
     const parsed = Papa.parse<RawTransactionRow>(csv, {
@@ -63,44 +78,52 @@ export function processHourlyActivity(
         console.log(`    ${(rowCount / 1_000_000).toFixed(0)}M rows...`);
       }
 
-      if (!row.date_trans_start) continue;
+      if (!row.date_trans_start || !row.date_meter_expire) continue;
 
-      // Parse timestamp: "YYYY-MM-DD HH:MM:SS" or "YYYY-MM-DDTHH:MM:SS"
-      const ts = row.date_trans_start.replace("T", " ");
-      const dateStr = ts.slice(0, 10);           // "YYYY-MM-DD"
-      const hourStr = ts.slice(11, 13);
-      const hour = parseInt(hourStr);
-      if (isNaN(hour) || hour < 0 || hour > 23) continue;
+      // Parse start timestamp
+      const tsStart = row.date_trans_start.replace("T", " ");
+      const dateStr = tsStart.slice(0, 10); // "YYYY-MM-DD"
+      const startHour = parseInt(tsStart.slice(11, 13));
+      if (isNaN(startHour) || startHour < 0 || startHour > 23) continue;
 
-      // Day of week from date
+      // Parse expire timestamp — only handle same-date transactions (rare to span midnight)
+      const tsExpire = row.date_meter_expire.replace("T", " ");
+      const expireDateStr = tsExpire.slice(0, 10);
+      const expireHour = parseInt(tsExpire.slice(11, 13));
+      if (isNaN(expireHour)) continue;
+
+      // Clamp expire hour: if different date or unreasonably long, cap at startHour + 8
+      const effectiveExpireHour = expireDateStr !== dateStr || expireHour < startHour
+        ? Math.min(startHour + 8, 23)
+        : Math.min(expireHour, 23);
+
+      // Day of week
       const dateObj = new Date(dateStr + "T12:00:00");
       if (isNaN(dateObj.getTime())) continue;
       const dow = dateObj.getDay(); // 0=Sun
 
       // Period
       const month = parseInt(dateStr.slice(5, 7));
-      const isPreReform =
-        year < 2025 || (year === 2025 && month < 2);
-      const period: "pre-reform" | "post-reform" = isPreReform
-        ? "pre-reform"
-        : "post-reform";
+      const isPreReform = year < 2025 || (year === 2025 && month < 2);
+      const period: "pre-reform" | "post-reform" = isPreReform ? "pre-reform" : "post-reform";
 
       // Zone
       const location = poleToLocation.get(row.pole_id);
       const zone = location?.zone ?? "Unknown";
-      if (!zones.includes(zone)) continue;
+      if (!validZones.has(zone)) continue;
 
       // Game day — only tag Downtown meters
       const isGameDay = zone === "Downtown" && gameDates.has(dateStr);
 
-      // Aggregate for zone-specific and "All" buckets
-      for (const z of [zone, "All"]) {
-        // For "All" zone, isGameDay = false (game day filter only meaningful for Downtown)
-        const gd = z === "All" ? false : isGameDay;
-        const key = `${hour}|${dow}|${z}|${gd ? "1" : "0"}|${period}`;
-        const entry = getOrCreate(key);
-        entry.totalTrans++;
-        entry.dates.add(`${z}|${dateStr}`);
+      // Expand transaction across each hour it covers [startHour, effectiveExpireHour]
+      for (let h = startHour; h <= effectiveExpireHour; h++) {
+        for (const z of [zone, "All"]) {
+          const gd = z === "All" ? false : isGameDay;
+          const key = `${h}|${dow}|${z}|${gd ? "1" : "0"}|${period}`;
+          const entry = getOrCreate(key);
+          entry.occupiedSum++;
+          entry.dates.add(`${z}|${dateStr}`);
+        }
       }
     }
 
@@ -117,16 +140,12 @@ export function processHourlyActivity(
     const isGameDay = parts[3] === "1";
     const period = parts[4] as "pre-reform" | "post-reform";
     const sampleDays = entry.dates.size;
+    const meterCount = zoneMeterCounts.get(zone) ?? 1;
 
-    records.push({
-      hour,
-      dow,
-      zone,
-      isGameDay,
-      period,
-      avgTrans: sampleDays > 0 ? entry.totalTrans / sampleDays : 0,
-      sampleDays,
-    });
+    const avgOccupied = sampleDays > 0 ? entry.occupiedSum / sampleDays : 0;
+    const occupancy = Math.min((avgOccupied / meterCount) * 100, 120);
+
+    records.push({ hour, dow, zone, isGameDay, period, occupancy: Math.round(occupancy * 10) / 10, sampleDays });
   }
 
   records.sort((a, b) => {
@@ -137,7 +156,7 @@ export function processHourlyActivity(
     return Number(a.isGameDay) - Number(b.isGameDay);
   });
 
-  console.log(`  Generated ${records.length} hourly activity records`);
+  console.log(`  Generated ${records.length} hourly occupancy records`);
   return records;
 }
 

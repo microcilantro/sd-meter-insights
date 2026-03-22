@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid,
-  ResponsiveContainer, Legend,
+  ResponsiveContainer, Legend, ReferenceLine,
 } from "recharts";
 import { ChartContainer } from "../shared/ChartContainer.tsx";
 import { getChartTheme } from "../../utils/chartTheme.ts";
@@ -36,36 +36,30 @@ function formatHour(h: number): string {
 export function HourlyActivity({ data, zone }: Props) {
   const dark = useIsDark();
   const theme = getChartTheme(dark);
-  const [selectedDow, setSelectedDow] = useState<number>(-1); // -1 = all days
+  const [selectedDow, setSelectedDow] = useState<number>(-1);
   const [eventFilter, setEventFilter] = useState<EventFilter>("all");
 
-  const showEventFilter =
-    zone === "All" || zone === "Downtown";
+  const showEventFilter = zone === "All" || zone === "Downtown";
 
   const chartData = useMemo(() => {
     const zoneData = data.filter((r) => r.zone === zone);
 
-    // Build map: hour → { pre: number, post: number }
     const hourMap = new Map<number, { pre: number; preCount: number; post: number; postCount: number }>();
     for (let h = 0; h < 24; h++) {
       hourMap.set(h, { pre: 0, preCount: 0, post: 0, postCount: 0 });
     }
 
     for (const r of zoneData) {
-      // Day of week filter
       if (selectedDow !== -1 && r.dow !== selectedDow) continue;
-
-      // Event filter (only applies to Downtown)
       if (showEventFilter && eventFilter === "game" && !r.isGameDay) continue;
       if (showEventFilter && eventFilter === "nongame" && r.isGameDay) continue;
-      // For non-downtown zones or "all" event filter, include everything (isGameDay is always false)
 
       const entry = hourMap.get(r.hour)!;
       if (r.period === "pre-reform") {
-        entry.pre += r.avgTrans * r.sampleDays;
+        entry.pre += r.occupancy * r.sampleDays;
         entry.preCount += r.sampleDays;
       } else {
-        entry.post += r.avgTrans * r.sampleDays;
+        entry.post += r.occupancy * r.sampleDays;
         entry.postCount += r.sampleDays;
       }
     }
@@ -90,13 +84,13 @@ export function HourlyActivity({ data, zone }: Props) {
         : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
     }`;
 
-  const subtitle =
-    selectedDow === -1
-      ? "Average transactions per hour across all days"
-      : `Average transactions per hour on ${DAY_NAMES[selectedDow === 0 ? 0 : selectedDow]}s`;
+  const dowLabel = selectedDow === -1 ? "all days" : `${DAY_NAMES[selectedDow]}s`;
 
   return (
-    <ChartContainer title="Hourly Activity Profile" subtitle={subtitle}>
+    <ChartContainer
+      title="Hourly Parking Occupancy"
+      subtitle={`Payment occupancy by hour of day — ${dowLabel}`}
+    >
       {/* Day of week filter */}
       <div className="flex flex-wrap gap-1 mb-3">
         {DOW_OPTIONS.map((opt) => (
@@ -113,9 +107,7 @@ export function HourlyActivity({ data, zone }: Props) {
       {/* Special event filter — Downtown/All only */}
       {showEventFilter && (
         <div className="flex gap-1 mb-4">
-          <span className="text-xs text-gray-500 dark:text-gray-400 self-center mr-1">
-            Event:
-          </span>
+          <span className="text-xs text-gray-500 dark:text-gray-400 self-center mr-1">Event:</span>
           {(
             [
               { label: "All Days", value: "all" },
@@ -143,29 +135,28 @@ export function HourlyActivity({ data, zone }: Props) {
             interval={1}
           />
           <YAxis
+            tickFormatter={(v: number) => `${v.toFixed(0)}%`}
             tick={{ fontSize: 11, fill: theme.tick }}
-            label={{
-              value: "Avg transactions",
-              angle: -90,
-              position: "insideLeft",
-              offset: 10,
-              style: { fontSize: 10, fill: theme.tick },
-            }}
-            width={65}
+            domain={[0, 100]}
+            width={45}
+          />
+          <ReferenceLine
+            y={85}
+            stroke="#CC3333"
+            strokeDasharray="6 3"
+            strokeWidth={1.5}
+            label={{ value: "85% Target", position: "insideTopRight", fill: "#CC3333", fontSize: 10 }}
           />
           <Tooltip
-            contentStyle={{
-              backgroundColor: theme.tooltipBg,
-              borderColor: theme.tooltipBorder,
-              color: theme.tooltipText,
+            contentStyle={{ backgroundColor: theme.tooltipBg, borderColor: theme.tooltipBorder, color: theme.tooltipText }}
+            formatter={(value, name) => {
+              const label = name === "preReform" ? "Pre-reform (2024)" : "Post-reform (2025+)";
+              const v = typeof value === "number" ? value.toFixed(1) : "—";
+              return [`${v}%`, label] as [string, string];
             }}
-            formatter={(v: any, name: string) => [
-              v != null ? v.toFixed(1) : "—",
-              name === "preReform" ? "Pre-reform (2024)" : "Post-reform (2025+)",
-            ]}
           />
           <Legend
-            formatter={(v) =>
+            formatter={(v: string) =>
               v === "preReform" ? "Pre-reform (2024)" : "Post-reform (2025+)"
             }
           />
@@ -191,7 +182,7 @@ export function HourlyActivity({ data, zone }: Props) {
         </LineChart>
       </ResponsiveContainer>
       <p className="text-xs text-gray-400 mt-2">
-        Based on raw transaction timestamps. Pre-reform = before Feb 2025. Game day filter applies to Downtown zone only.
+        Payment occupancy = paid meter-hours ÷ total meter capacity. Lower bound — excludes unpaid parking. Game day filter applies to Downtown only.
       </p>
     </ChartContainer>
   );

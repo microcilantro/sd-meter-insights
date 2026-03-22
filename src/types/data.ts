@@ -107,7 +107,7 @@ export interface HourlyRecord {
   zone: string;
   isGameDay: boolean;
   period: "pre-reform" | "post-reform";
-  avgTrans: number;
+  occupancy: number;    // 0–100 (payment occupancy %)
   sampleDays: number;
 }
 
