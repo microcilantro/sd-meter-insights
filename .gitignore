@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Data pipeline cache (large CSV files, not committed)
+scripts/cache/
+
+# Environment
+.env
+.env.local
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+
+# Logs
+*.log
