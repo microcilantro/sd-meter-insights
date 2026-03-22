@@ -7,9 +7,11 @@ const DataContext = createContext<{
   error: string | null;
 }>({ data: null, loading: true, error: null });
 
+const BASE = import.meta.env.BASE_URL;
+
 async function fetchJSON<T>(path: string): Promise<T> {
-  const res = await fetch(path);
-  if (!res.ok) throw new Error(`Failed to fetch ${path}: ${res.status}`);
+  const res = await fetch(BASE + path);
+  if (!res.ok) throw new Error(`Failed to fetch ${BASE + path}: ${res.status}`);
   return res.json();
 }
 
@@ -20,15 +22,15 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     Promise.all([
-      fetchJSON("/data/monthly-revenue.json"),
-      fetchJSON("/data/daily-summary.json"),
-      fetchJSON("/data/dow-heatmap.json"),
-      fetchJSON("/data/citations-monthly.json"),
-      fetchJSON("/data/meter-locations.json"),
-      fetchJSON("/data/metadata.json"),
-      fetchJSON("/data/payment-methods.json").catch(() => null),
-      fetchJSON("/data/zone-pricing.json").catch(() => null),
-      fetchJSON("/data/gameday-stats.json").catch(() => null),
+      fetchJSON("data/monthly-revenue.json"),
+      fetchJSON("data/daily-summary.json"),
+      fetchJSON("data/dow-heatmap.json"),
+      fetchJSON("data/citations-monthly.json"),
+      fetchJSON("data/meter-locations.json"),
+      fetchJSON("data/metadata.json"),
+      fetchJSON("data/payment-methods.json").catch(() => null),
+      fetchJSON("data/zone-pricing.json").catch(() => null),
+      fetchJSON("data/gameday-stats.json").catch(() => null),
     ])
       .then(
         ([monthly, daily, dowHeatmap, citations, locations, metadata, payments, zonePricing, gameday]) => {
