@@ -77,10 +77,14 @@ function SplitBar({
           className="bg-[#C69214] text-white flex items-center justify-center"
           style={{ width: `${districtPct}%` }}
         >
-          District {districtPct}%
-          {districtPct >= 20 && ` (${formatCurrencyFull(districtAmount)})`}
+          {districtPct >= 20 ? `District ${districtPct}% (${formatCurrencyFull(districtAmount)})` : `${districtPct}%`}
         </div>
       </div>
+      {districtPct < 20 && (
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 text-right">
+          District {districtPct}%: {formatCurrencyFull(districtAmount)}
+        </p>
+      )}
     </div>
   );
 }
