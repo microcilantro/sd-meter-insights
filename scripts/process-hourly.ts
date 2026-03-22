@@ -12,40 +12,87 @@ export interface HourlyRecord {
   sampleDays: number;
 }
 
+/** Parse a time string like "8am", "6pm", "800", "1800", "8" into 24-hour float. */
+function parseTimeHour(s: string): number {
+  if (!s) return -1;
+  s = s.trim().toLowerCase();
+  const ampm = s.match(/^(\d+)(am|pm)$/);
+  if (ampm) {
+    let h = parseInt(ampm[1]);
+    if (ampm[2] === "pm" && h !== 12) h += 12;
+    if (ampm[2] === "am" && h === 12) h = 0;
+    return h;
+  }
+  const n = parseFloat(s);
+  if (!isNaN(n)) {
+    if (n > 24) return Math.floor(n / 100); // HHMM format
+    return n;
+  }
+  return -1;
+}
+
+/**
+ * For each zone and each hour 0–23, count how many meters are active
+ * (i.e. timeStart <= hour < timeEnd).
+ * Used as the denominator when computing hourly occupancy.
+ */
+function buildActiveMetersByHour(
+  poleToLocation: Map<string, MeterLocation>
+): Map<string, number[]> {
+  // zone → array of 24 counts
+  const result = new Map<string, number[]>();
+
+  const initZone = (z: string) => {
+    if (!result.has(z)) result.set(z, new Array(24).fill(0));
+  };
+
+  for (const loc of poleToLocation.values()) {
+    const zone = loc.zone;
+    if (!zone) continue;
+
+    const start = parseTimeHour(loc.timeStart);
+    const end = parseTimeHour(loc.timeEnd);
+    if (start < 0 || end <= start) continue;
+
+    initZone(zone);
+    initZone("All");
+
+    // Meter is active for hours [start, end)
+    const endH = Math.min(Math.ceil(end), 24);
+    for (let h = Math.floor(start); h < endH; h++) {
+      result.get(zone)![h]++;
+      result.get("All")![h]++;
+    }
+  }
+
+  return result;
+}
+
 /**
  * Processes raw transaction files to build hourly payment occupancy profiles.
  *
  * For each transaction, we expand it across every hour it covers
  * (from start hour through expire hour) and count meter-hours occupied.
- * Occupancy = avg occupied meters at that hour / total meters in zone.
  *
- * Aggregation key: (hour, dow, zone, isGameDay, period)
+ * Denominator per hour H = meters that are *active* at hour H (not all meters).
+ * This ensures occupancy is only computed relative to meters actually operating.
  *
  * "pre-reform"  = before Feb 2025 (rates doubled Jan 31 2025)
  * "post-reform" = Feb 2025 onwards
- *
- * isGameDay is only tagged for Downtown zone on Padres home game dates.
  */
 export function processHourlyActivity(
   filepaths: { filepath: string; year: number }[],
   poleToLocation: Map<string, MeterLocation>,
-  gameDates: Set<string>   // "YYYY-MM-DD" strings of Padres home games
+  gameDates: Set<string>
 ): HourlyRecord[] {
-  // Meter counts per zone (for occupancy denominator)
-  const zoneMeterCounts = new Map<string, number>();
-  for (const loc of poleToLocation.values()) {
-    if (!loc.zone) continue;
-    zoneMeterCounts.set(loc.zone, (zoneMeterCounts.get(loc.zone) ?? 0) + 1);
-  }
-  const totalMeters = [...zoneMeterCounts.values()].reduce((s, v) => s + v, 0);
-  zoneMeterCounts.set("All", totalMeters);
+  const validZones = new Set([
+    "All", "Downtown", "Uptown", "Mid-City", "Pacific Beach", "City", "Balboa Park",
+  ]);
 
-  const validZones = new Set(["All", "Downtown", "Uptown", "Mid-City", "Pacific Beach", "City", "Balboa Park"]);
+  // Active meter count per (zone, hour)
+  const activeMetersByHour = buildActiveMetersByHour(poleToLocation);
 
-  // key → { occupiedSum: number, dates: Set<string> }
-  // occupiedSum = total number of (transaction × hour) overlaps across all sample days
-  // avgOccupied = occupiedSum / sampleDays
-  // occupancy = avgOccupied / meterCount
+  // key → { occupiedSum, dates }
   const agg = new Map<string, { occupiedSum: number; dates: Set<string> }>();
 
   function getOrCreate(key: string) {
@@ -80,42 +127,35 @@ export function processHourlyActivity(
 
       if (!row.date_trans_start || !row.date_meter_expire) continue;
 
-      // Parse start timestamp
       const tsStart = row.date_trans_start.replace("T", " ");
-      const dateStr = tsStart.slice(0, 10); // "YYYY-MM-DD"
+      const dateStr = tsStart.slice(0, 10);
       const startHour = parseInt(tsStart.slice(11, 13));
       if (isNaN(startHour) || startHour < 0 || startHour > 23) continue;
 
-      // Parse expire timestamp — only handle same-date transactions (rare to span midnight)
       const tsExpire = row.date_meter_expire.replace("T", " ");
       const expireDateStr = tsExpire.slice(0, 10);
       const expireHour = parseInt(tsExpire.slice(11, 13));
       if (isNaN(expireHour)) continue;
 
-      // Clamp expire hour: if different date or unreasonably long, cap at startHour + 8
-      const effectiveExpireHour = expireDateStr !== dateStr || expireHour < startHour
-        ? Math.min(startHour + 8, 23)
-        : Math.min(expireHour, 23);
+      const effectiveExpireHour =
+        expireDateStr !== dateStr || expireHour < startHour
+          ? Math.min(startHour + 8, 23)
+          : Math.min(expireHour, 23);
 
-      // Day of week
       const dateObj = new Date(dateStr + "T12:00:00");
       if (isNaN(dateObj.getTime())) continue;
-      const dow = dateObj.getDay(); // 0=Sun
+      const dow = dateObj.getDay();
 
-      // Period
       const month = parseInt(dateStr.slice(5, 7));
       const isPreReform = year < 2025 || (year === 2025 && month < 2);
       const period: "pre-reform" | "post-reform" = isPreReform ? "pre-reform" : "post-reform";
 
-      // Zone
       const location = poleToLocation.get(row.pole_id);
       const zone = location?.zone ?? "Unknown";
       if (!validZones.has(zone)) continue;
 
-      // Game day — only tag Downtown meters
       const isGameDay = zone === "Downtown" && gameDates.has(dateStr);
 
-      // Expand transaction across each hour it covers [startHour, effectiveExpireHour]
       for (let h = startHour; h <= effectiveExpireHour; h++) {
         for (const z of [zone, "All"]) {
           const gd = z === "All" ? false : isGameDay;
@@ -130,7 +170,6 @@ export function processHourlyActivity(
     console.log(`    ${year}: ${rowCount.toLocaleString()} rows processed`);
   }
 
-  // Convert to output records
   const records: HourlyRecord[] = [];
   for (const [key, entry] of agg) {
     const parts = key.split("|");
@@ -140,12 +179,19 @@ export function processHourlyActivity(
     const isGameDay = parts[3] === "1";
     const period = parts[4] as "pre-reform" | "post-reform";
     const sampleDays = entry.dates.size;
-    const meterCount = zoneMeterCounts.get(zone) ?? 1;
+
+    // Use active meter count at this specific hour as denominator
+    const activeMeters = activeMetersByHour.get(zone)?.[hour] ?? 0;
+    if (activeMeters === 0) continue; // skip hours when no meters are active
 
     const avgOccupied = sampleDays > 0 ? entry.occupiedSum / sampleDays : 0;
-    const occupancy = Math.min((avgOccupied / meterCount) * 100, 120);
+    const occupancy = Math.min((avgOccupied / activeMeters) * 100, 120);
 
-    records.push({ hour, dow, zone, isGameDay, period, occupancy: Math.round(occupancy * 10) / 10, sampleDays });
+    records.push({
+      hour, dow, zone, isGameDay, period,
+      occupancy: Math.round(occupancy * 10) / 10,
+      sampleDays,
+    });
   }
 
   records.sort((a, b) => {
