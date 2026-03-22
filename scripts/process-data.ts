@@ -12,6 +12,7 @@ import { buildMetadata } from "./build-metadata.ts";
 import { buildZonePricing } from "./build-zone-pricing.ts";
 import { fetchPadresSchedule } from "./fetch-schedule.ts";
 import { processGameday } from "./process-gameday.ts";
+import { processHourlyActivity, loadGameDates } from "./process-hourly.ts";
 
 const OUTPUT_DIR = path.join(import.meta.dirname, "..", "public", "data");
 
@@ -94,9 +95,8 @@ async function main() {
   const citationRecords = processCitations(citationFiles, addressToZone, streetToZone);
   writeJSON("citations-monthly.json", citationRecords);
 
-  // Stage 6: Process payment methods (optional)
+  // Stage 6: Process raw data (payment methods + hourly activity)
   if (includeRaw) {
-    console.log("\n--- Stage 6: Payment Methods (Raw Data) ---");
     const rawFiles = years
       .filter((y) => y >= 2024 && y <= 2025)
       .map((year) => ({
@@ -106,13 +106,20 @@ async function main() {
       .filter((f) => cacheFileExists(f.filepath.split("/").pop()!));
 
     if (rawFiles.length > 0) {
+      console.log("\n--- Stage 6a: Payment Methods (Raw Data) ---");
       const paymentRecords = processPaymentMethods(rawFiles, poleToLocation);
       writeJSON("payment-methods.json", paymentRecords);
+
+      console.log("\n--- Stage 6b: Hourly Activity (Raw Data) ---");
+      const cacheDir = path.join(import.meta.dirname, "cache");
+      const gameDates = loadGameDates(cacheDir, years.filter((y) => y >= 2024 && y <= 2025));
+      const hourlyRecords = processHourlyActivity(rawFiles, poleToLocation, gameDates);
+      writeJSON("hourly-activity.json", hourlyRecords);
     } else {
-      console.log("  No raw transaction files found. Skipping.");
+      console.log("\n--- Stage 6: Raw Data (Skipped — no files found) ---");
     }
   } else {
-    console.log("\n--- Stage 6: Payment Methods (Skipped) ---");
+    console.log("\n--- Stage 6: Raw Data (Skipped) ---");
   }
 
   // Stage 7: Padres game day analysis (optional)

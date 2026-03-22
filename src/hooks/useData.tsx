@@ -31,9 +31,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       fetchJSON("data/payment-methods.json").catch(() => null),
       fetchJSON("data/zone-pricing.json").catch(() => null),
       fetchJSON("data/gameday-stats.json").catch(() => null),
+      fetchJSON("data/hourly-activity.json").catch(() => null),
     ])
       .then(
-        ([monthly, daily, dowHeatmap, citations, locations, metadata, payments, zonePricing, gameday]) => {
+        ([monthly, daily, dowHeatmap, citations, locations, metadata, payments, zonePricing, gameday, hourly]) => {
           setData({
             monthly,
             daily,
@@ -44,6 +45,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             payments,
             zonePricing,
             gameday,
+            hourly,
           } as DashboardData);
           setLoading(false);
         }

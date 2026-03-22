@@ -13,7 +13,7 @@ import { RevenueSplit } from "./components/revenue/RevenueSplit.tsx";
 import { PaymentBreakdown } from "./components/revenue/PaymentBreakdown.tsx";
 import { TransactionTrend } from "./components/occupancy/TransactionTrend.tsx";
 import { OccupancyTrend } from "./components/occupancy/OccupancyTrend.tsx";
-import { DowHeatmap } from "./components/occupancy/DowHeatmap.tsx";
+import { HourlyActivity } from "./components/occupancy/HourlyActivity.tsx";
 import { SundayImpact } from "./components/occupancy/SundayImpact.tsx";
 import { CitationTrend } from "./components/citations/CitationTrend.tsx";
 import { TopViolations } from "./components/citations/TopViolations.tsx";
@@ -112,7 +112,9 @@ function Dashboard() {
               />
             )}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <DowHeatmap data={filtered.dowHeatmap} />
+              {data.hourly && (
+                <HourlyActivity data={data.hourly} zone={zone} />
+              )}
               <SundayImpact data={filtered.dowHeatmap} />
             </div>
           </div>

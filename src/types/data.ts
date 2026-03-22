@@ -101,6 +101,16 @@ export interface GamedayData {
   daily: GamedayDailyRecord[];
 }
 
+export interface HourlyRecord {
+  hour: number;         // 0–23
+  dow: number;          // 0=Sun, 1=Mon, … 6=Sat
+  zone: string;
+  isGameDay: boolean;
+  period: "pre-reform" | "post-reform";
+  avgTrans: number;
+  sampleDays: number;
+}
+
 export interface DashboardData {
   monthly: MonthlyRevenueRecord[];
   daily: DailySummaryRecord[];
@@ -111,4 +121,5 @@ export interface DashboardData {
   payments: PaymentMethodRecord[] | null;
   zonePricing: ZonePricing[] | null;
   gameday: GamedayData | null;
+  hourly: HourlyRecord[] | null;
 }
