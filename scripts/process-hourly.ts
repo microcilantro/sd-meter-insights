@@ -154,9 +154,20 @@ export function processHourlyActivity(
       const zone = location?.zone ?? "Unknown";
       if (!validZones.has(zone)) continue;
 
+      // Cap carry-forward at this meter's own last active hour.
+      // activeMetersByHour uses `h < ceil(timeEnd)`, so the last active hour
+      // is ceil(timeEnd)-1. Aligning the carry-forward cap to the same boundary
+      // prevents bleed into hours where this meter is no longer in the
+      // denominator, which would artificially spike occupancy at enforcement
+      // boundaries (e.g. the 8pm cliff from 2311 → 533 active Downtown meters).
+      const meterEndHour = location ? parseTimeHour(location.timeEnd) : 24;
+      const cappedExpireHour = meterEndHour > 0
+        ? Math.min(effectiveExpireHour, Math.ceil(meterEndHour) - 1)
+        : effectiveExpireHour;
+
       const isGameDay = zone === "Downtown" && gameDates.has(dateStr);
 
-      for (let h = startHour; h <= effectiveExpireHour; h++) {
+      for (let h = startHour; h <= cappedExpireHour; h++) {
         for (const z of [zone, "All"]) {
           const gd = z === "All" ? false : isGameDay;
           const key = `${h}|${dow}|${z}|${gd ? "1" : "0"}|${period}`;
