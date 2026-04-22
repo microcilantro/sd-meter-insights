@@ -1,35 +1,25 @@
 import { useMemo } from "react";
 import { KPICard } from "./KPICard.tsx";
-import { formatCurrency, formatNumber } from "../../utils/formatters.ts";
-import type { MonthlyRevenueRecord, CitationMonthlyRecord } from "../../types/data.ts";
+import { formatCurrency, formatNumber, formatMonthYear } from "../../utils/formatters.ts";
+import type { MonthlyRevenueRecord, CitationMonthlyRecord, DateRange } from "../../types/data.ts";
 
 interface KPICardsProps {
-  monthly: MonthlyRevenueRecord[];
+  monthly: MonthlyRevenueRecord[];      // date+zone filtered
+  allMonthly: MonthlyRevenueRecord[];   // zone filtered, full history
   citations: CitationMonthlyRecord[];
+  allCitations: CitationMonthlyRecord[];
+  dateRange: DateRange | null;
 }
 
-function avgMonthly(
-  records: MonthlyRevenueRecord[],
-  year: number,
-  field: "revenue" | "transactions"
-): number {
-  const yearRecords = records.filter((r) => r.year === year);
-  if (yearRecords.length === 0) return 0;
-  const total = yearRecords.reduce((sum, r) => sum + r[field], 0);
-  return total / yearRecords.length;
+function avg(records: MonthlyRevenueRecord[], field: "revenue" | "transactions"): number {
+  if (records.length === 0) return 0;
+  return records.reduce((s, r) => s + r[field], 0) / records.length;
 }
 
-function avgMonthlyCitations(
-  records: CitationMonthlyRecord[],
-  year: number,
-  field: "citationCount" | "fineTotal"
-): number {
-  const yearRecords = records.filter(
-    (r) => r.year === year && r.meterRelated
-  );
-  if (yearRecords.length === 0) return 0;
-  const total = yearRecords.reduce((sum, r) => sum + r[field], 0);
-  return total / yearRecords.length;
+function avgCitations(records: CitationMonthlyRecord[], field: "citationCount" | "fineTotal"): number {
+  const filtered = records.filter((r) => r.meterRelated);
+  if (filtered.length === 0) return 0;
+  return filtered.reduce((s, r) => s + r[field], 0) / filtered.length;
 }
 
 function pctChange(current: number, previous: number): number {
@@ -37,76 +27,86 @@ function pctChange(current: number, previous: number): number {
   return ((current - previous) / previous) * 100;
 }
 
-export function KPICards({ monthly, citations }: KPICardsProps) {
-  const kpis = useMemo(() => {
-    const rev2025 = avgMonthly(monthly, 2025, "revenue");
-    const rev2024 = avgMonthly(monthly, 2024, "revenue");
+export function KPICards({ monthly, allMonthly, citations, allCitations, dateRange }: KPICardsProps) {
+  const { current, previous, label } = useMemo(() => {
+    if (!dateRange) {
+      // Default: 2025 vs 2024
+      const cur = allMonthly.filter((r) => r.year === 2025);
+      const prev = allMonthly.filter((r) => r.year === 2024);
+      const curCit = allCitations.filter((r) => r.year === 2025);
+      const prevCit = allCitations.filter((r) => r.year === 2024);
+      return {
+        current: { monthly: cur, citations: curCit },
+        previous: { monthly: prev, citations: prevCit },
+        label: "2025 avg vs 2024 avg",
+      };
+    }
 
-    const trans2025 = avgMonthly(monthly, 2025, "transactions");
-    const trans2024 = avgMonthly(monthly, 2024, "transactions");
+    // With date range: current = months in range, previous = same months prior year
+    const { start, end } = dateRange;
+    const priorStart = { year: start.year - 1, month: start.month };
+    const priorEnd = { year: end.year - 1, month: end.month };
 
-    const avgPerTrans2025 = trans2025 > 0 ? rev2025 / trans2025 : 0;
-    const avgPerTrans2024 = trans2024 > 0 ? rev2024 / trans2024 : 0;
+    function inRange(year: number, month: number, s: typeof start, e: typeof end) {
+      const key = year * 100 + month;
+      return key >= s.year * 100 + s.month && key <= e.year * 100 + e.month;
+    }
 
-    const citCount2025 = avgMonthlyCitations(citations, 2025, "citationCount");
-    const citCount2024 = avgMonthlyCitations(citations, 2024, "citationCount");
+    const cur = monthly; // already filtered to range
+    const prev = allMonthly.filter((r) => inRange(r.year, r.month, priorStart, priorEnd));
+    const curCit = citations;
+    const prevCit = allCitations.filter((r) => inRange(r.year, r.month, priorStart, priorEnd));
 
-    const citRev2025 = avgMonthlyCitations(citations, 2025, "fineTotal");
-    const citRev2024 = avgMonthlyCitations(citations, 2024, "fineTotal");
+    const curLabel = `${formatMonthYear(start.year, start.month)}–${formatMonthYear(end.year, end.month)}`;
+    const prevLabel = `${formatMonthYear(priorStart.year, priorStart.month)}–${formatMonthYear(priorEnd.year, priorEnd.month)}`;
 
     return {
-      revenue: { current: rev2025, previous: rev2024 },
-      transactions: { current: trans2025, previous: trans2024 },
-      avgPerTrans: { current: avgPerTrans2025, previous: avgPerTrans2024 },
-      citationCount: { current: citCount2025, previous: citCount2024 },
-      citationRevenue: { current: citRev2025, previous: citRev2024 },
+      current: { monthly: cur, citations: curCit },
+      previous: { monthly: prev, citations: prevCit },
+      label: `${curLabel} vs ${prevLabel}`,
     };
-  }, [monthly, citations]);
+  }, [monthly, allMonthly, citations, allCitations, dateRange]);
+
+  const rev = { cur: avg(current.monthly, "revenue"), prev: avg(previous.monthly, "revenue") };
+  const tx  = { cur: avg(current.monthly, "transactions"), prev: avg(previous.monthly, "transactions") };
+  const apt = {
+    cur: tx.cur > 0 ? rev.cur / tx.cur : 0,
+    prev: tx.prev > 0 ? rev.prev / tx.prev : 0,
+  };
+  const cit = {
+    cur: avgCitations(current.citations, "citationCount"),
+    prev: avgCitations(previous.citations, "citationCount"),
+  };
+  const citRev = {
+    cur: avgCitations(current.citations, "fineTotal"),
+    prev: avgCitations(previous.citations, "fineTotal"),
+  };
+
+  const curLabel = dateRange
+    ? `${dateRange.start.year}–${dateRange.end.year === dateRange.start.year ? "" : dateRange.end.year}`.replace("–", dateRange.start.year === dateRange.end.year ? "" : "–")
+    : "2025";
+  const prevLabel = dateRange ? `${dateRange.start.year - 1}` : "2024";
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-      <KPICard
-        title="Monthly Meter Revenue"
-        currentValue={formatCurrency(kpis.revenue.current)}
-        previousValue={formatCurrency(kpis.revenue.previous)}
-        percentChange={pctChange(kpis.revenue.current, kpis.revenue.previous)}
-      />
-      <KPICard
-        title="Monthly Transactions"
-        currentValue={formatNumber(Math.round(kpis.transactions.current))}
-        previousValue={formatNumber(Math.round(kpis.transactions.previous))}
-        percentChange={pctChange(
-          kpis.transactions.current,
-          kpis.transactions.previous
-        )}
-      />
-      <KPICard
-        title="Avg Revenue / Transaction"
-        currentValue={`$${kpis.avgPerTrans.current.toFixed(2)}`}
-        previousValue={`$${kpis.avgPerTrans.previous.toFixed(2)}`}
-        percentChange={pctChange(
-          kpis.avgPerTrans.current,
-          kpis.avgPerTrans.previous
-        )}
-      />
-      <KPICard
-        title="Monthly Meter Citations"
-        currentValue={formatNumber(Math.round(kpis.citationCount.current))}
-        previousValue={formatNumber(Math.round(kpis.citationCount.previous))}
-        percentChange={pctChange(
-          kpis.citationCount.current,
-          kpis.citationCount.previous
-        )}
-      />
-      <KPICard
-        title="Monthly Citation Revenue"
-        currentValue={formatCurrency(kpis.citationRevenue.current)}
-        previousValue={formatCurrency(kpis.citationRevenue.previous)}
-        percentChange={pctChange(
-          kpis.citationRevenue.current,
-          kpis.citationRevenue.previous
-        )}
-      />
+    <div className="space-y-2">
+      <p className="text-xs text-gray-400 dark:text-gray-500">{label}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <KPICard title="Monthly Meter Revenue"
+          currentValue={formatCurrency(rev.cur)} previousValue={formatCurrency(rev.prev)}
+          percentChange={pctChange(rev.cur, rev.prev)} currentLabel={curLabel} previousLabel={prevLabel} />
+        <KPICard title="Monthly Transactions"
+          currentValue={formatNumber(Math.round(tx.cur))} previousValue={formatNumber(Math.round(tx.prev))}
+          percentChange={pctChange(tx.cur, tx.prev)} currentLabel={curLabel} previousLabel={prevLabel} />
+        <KPICard title="Avg Revenue / Transaction"
+          currentValue={`$${apt.cur.toFixed(2)}`} previousValue={`$${apt.prev.toFixed(2)}`}
+          percentChange={pctChange(apt.cur, apt.prev)} currentLabel={curLabel} previousLabel={prevLabel} />
+        <KPICard title="Monthly Meter Citations"
+          currentValue={formatNumber(Math.round(cit.cur))} previousValue={formatNumber(Math.round(cit.prev))}
+          percentChange={pctChange(cit.cur, cit.prev)} currentLabel={curLabel} previousLabel={prevLabel} />
+        <KPICard title="Monthly Citation Revenue"
+          currentValue={formatCurrency(citRev.cur)} previousValue={formatCurrency(citRev.prev)}
+          percentChange={pctChange(citRev.cur, citRev.prev)} currentLabel={curLabel} previousLabel={prevLabel} />
+      </div>
     </div>
   );
 }

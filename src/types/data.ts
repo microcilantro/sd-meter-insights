@@ -1,3 +1,19 @@
+export interface MonthYear {
+  year: number;
+  month: number; // 1–12
+}
+
+export interface DateRange {
+  start: MonthYear;
+  end: MonthYear;
+}
+
+export interface PadresGame {
+  date: string;      // YYYY-MM-DD
+  opponent: string;
+  dayNight: "day" | "night" | "tbd";
+}
+
 export interface MonthlyRevenueRecord {
   year: number;
   month: number;

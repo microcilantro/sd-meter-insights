@@ -1,0 +1,407 @@
+[
+  {
+    "date": "2025-03-27",
+    "opponent": "Atlanta Braves",
+    "dayNight": "day"
+  },
+  {
+    "date": "2025-03-28",
+    "opponent": "Atlanta Braves",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-03-29",
+    "opponent": "Atlanta Braves",
+    "dayNight": "day"
+  },
+  {
+    "date": "2025-03-30",
+    "opponent": "Atlanta Braves",
+    "dayNight": "day"
+  },
+  {
+    "date": "2025-03-31",
+    "opponent": "Cleveland Guardians",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-04-01",
+    "opponent": "Cleveland Guardians",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-04-02",
+    "opponent": "Cleveland Guardians",
+    "dayNight": "day"
+  },
+  {
+    "date": "2025-04-11",
+    "opponent": "Colorado Rockies",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-04-12",
+    "opponent": "Colorado Rockies",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-04-13",
+    "opponent": "Colorado Rockies",
+    "dayNight": "day"
+  },
+  {
+    "date": "2025-04-14",
+    "opponent": "Chicago Cubs",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-04-15",
+    "opponent": "Chicago Cubs",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-04-16",
+    "opponent": "Chicago Cubs",
+    "dayNight": "day"
+  },
+  {
+    "date": "2025-04-25",
+    "opponent": "Tampa Bay Rays",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-04-26",
+    "opponent": "Tampa Bay Rays",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-04-27",
+    "opponent": "Tampa Bay Rays",
+    "dayNight": "day"
+  },
+  {
+    "date": "2025-04-29",
+    "opponent": "San Francisco Giants",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-04-30",
+    "opponent": "San Francisco Giants",
+    "dayNight": "day"
+  },
+  {
+    "date": "2025-05-12",
+    "opponent": "Los Angeles Angels",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-05-13",
+    "opponent": "Los Angeles Angels",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-05-14",
+    "opponent": "Los Angeles Angels",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-05-16",
+    "opponent": "Seattle Mariners",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-05-17",
+    "opponent": "Seattle Mariners",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-05-18",
+    "opponent": "Seattle Mariners",
+    "dayNight": "day"
+  },
+  {
+    "date": "2025-05-26",
+    "opponent": "Miami Marlins",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-05-27",
+    "opponent": "Miami Marlins",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-05-28",
+    "opponent": "Miami Marlins",
+    "dayNight": "day"
+  },
+  {
+    "date": "2025-05-30",
+    "opponent": "Pittsburgh Pirates",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-05-31",
+    "opponent": "Pittsburgh Pirates",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-06-01",
+    "opponent": "Pittsburgh Pirates",
+    "dayNight": "day"
+  },
+  {
+    "date": "2025-06-09",
+    "opponent": "Los Angeles Dodgers",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-06-10",
+    "opponent": "Los Angeles Dodgers",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-06-11",
+    "opponent": "Los Angeles Dodgers",
+    "dayNight": "day"
+  },
+  {
+    "date": "2025-06-20",
+    "opponent": "Kansas City Royals",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-06-21",
+    "opponent": "Kansas City Royals",
+    "dayNight": "day"
+  },
+  {
+    "date": "2025-06-22",
+    "opponent": "Kansas City Royals",
+    "dayNight": "day"
+  },
+  {
+    "date": "2025-06-23",
+    "opponent": "Washington Nationals",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-06-24",
+    "opponent": "Washington Nationals",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-06-25",
+    "opponent": "Washington Nationals",
+    "dayNight": "day"
+  },
+  {
+    "date": "2025-07-04",
+    "opponent": "Texas Rangers",
+    "dayNight": "day"
+  },
+  {
+    "date": "2025-07-05",
+    "opponent": "Texas Rangers",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-07-06",
+    "opponent": "Texas Rangers",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-07-07",
+    "opponent": "Arizona Diamondbacks",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-07-08",
+    "opponent": "Arizona Diamondbacks",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-07-09",
+    "opponent": "Arizona Diamondbacks",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-07-10",
+    "opponent": "Arizona Diamondbacks",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-07-11",
+    "opponent": "Philadelphia Phillies",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-07-12",
+    "opponent": "Philadelphia Phillies",
+    "dayNight": "day"
+  },
+  {
+    "date": "2025-07-13",
+    "opponent": "Philadelphia Phillies",
+    "dayNight": "day"
+  },
+  {
+    "date": "2025-07-28",
+    "opponent": "New York Mets",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-07-29",
+    "opponent": "New York Mets",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-07-30",
+    "opponent": "New York Mets",
+    "dayNight": "day"
+  },
+  {
+    "date": "2025-08-01",
+    "opponent": "St. Louis Cardinals",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-08-02",
+    "opponent": "St. Louis Cardinals",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-08-03",
+    "opponent": "St. Louis Cardinals",
+    "dayNight": "day"
+  },
+  {
+    "date": "2025-08-08",
+    "opponent": "Boston Red Sox",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-08-09",
+    "opponent": "Boston Red Sox",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-08-10",
+    "opponent": "Boston Red Sox",
+    "dayNight": "day"
+  },
+  {
+    "date": "2025-08-18",
+    "opponent": "San Francisco Giants",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-08-19",
+    "opponent": "San Francisco Giants",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-08-20",
+    "opponent": "San Francisco Giants",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-08-21",
+    "opponent": "San Francisco Giants",
+    "dayNight": "day"
+  },
+  {
+    "date": "2025-08-22",
+    "opponent": "Los Angeles Dodgers",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-08-23",
+    "opponent": "Los Angeles Dodgers",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-08-24",
+    "opponent": "Los Angeles Dodgers",
+    "dayNight": "day"
+  },
+  {
+    "date": "2025-09-01",
+    "opponent": "Baltimore Orioles",
+    "dayNight": "day"
+  },
+  {
+    "date": "2025-09-02",
+    "opponent": "Baltimore Orioles",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-09-03",
+    "opponent": "Baltimore Orioles",
+    "dayNight": "day"
+  },
+  {
+    "date": "2025-09-08",
+    "opponent": "Cincinnati Reds",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-09-09",
+    "opponent": "Cincinnati Reds",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-09-10",
+    "opponent": "Cincinnati Reds",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-09-11",
+    "opponent": "Colorado Rockies",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-09-12",
+    "opponent": "Colorado Rockies",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-09-13",
+    "opponent": "Colorado Rockies",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-09-14",
+    "opponent": "Colorado Rockies",
+    "dayNight": "day"
+  },
+  {
+    "date": "2025-09-22",
+    "opponent": "Milwaukee Brewers",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-09-23",
+    "opponent": "Milwaukee Brewers",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-09-24",
+    "opponent": "Milwaukee Brewers",
+    "dayNight": "day"
+  },
+  {
+    "date": "2025-09-26",
+    "opponent": "Arizona Diamondbacks",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-09-27",
+    "opponent": "Arizona Diamondbacks",
+    "dayNight": "night"
+  },
+  {
+    "date": "2025-09-28",
+    "opponent": "Arizona Diamondbacks",
+    "dayNight": "day"
+  }
+]

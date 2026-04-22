@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { DataProvider, useData } from "./hooks/useData.tsx";
 import { useFilteredData } from "./hooks/useFilteredData.ts";
 import { Header } from "./components/layout/Header.tsx";
-import { FilterControls } from "./components/layout/FilterControls.tsx";
+import { FilterControls, type AppTab } from "./components/layout/FilterControls.tsx";
+import { TimelineModal } from "./components/layout/TimelineModal.tsx";
 import { Footer } from "./components/layout/Footer.tsx";
 import { SectionHeading } from "./components/shared/SectionHeading.tsx";
 import { KPICards } from "./components/kpi/KPICards.tsx";
@@ -19,12 +20,16 @@ import { CitationTrend } from "./components/citations/CitationTrend.tsx";
 import { TopViolations } from "./components/citations/TopViolations.tsx";
 import { PadresImpact } from "./components/special-events/PadresImpact.tsx";
 import { MeterMap } from "./components/map/MeterMap.tsx";
-import { PolicyTimeline } from "./components/timeline/PolicyTimeline.tsx";
+import type { DateRange } from "./types/data.ts";
 
 function Dashboard() {
   const { data, loading, error } = useData();
   const [zone, setZone] = useState("All");
-  const filtered = useFilteredData(data, zone);
+  const [dateRange, setDateRange] = useState<DateRange | null>(null);
+  const [activeTab, setActiveTab] = useState<AppTab>("dashboard");
+  const [showTimeline, setShowTimeline] = useState(false);
+  const filtered = useFilteredData(data, zone, dateRange);
+
   const [darkMode, setDarkMode] = useState(() =>
     typeof window !== "undefined" && localStorage.getItem("darkMode") === "true"
   );
@@ -33,6 +38,13 @@ function Dashboard() {
     document.documentElement.classList.toggle("dark", darkMode);
     localStorage.setItem("darkMode", String(darkMode));
   }, [darkMode]);
+
+  // Derive the list of years present in the data for the date picker
+  const dataYears = useMemo(() => {
+    if (!data) return [2023, 2024, 2025, 2026];
+    const years = [...new Set(data.monthly.map((r) => r.year))].sort();
+    return years;
+  }, [data]);
 
   if (loading) {
     return (
@@ -61,100 +73,123 @@ function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 dark:text-gray-100 transition-colors">
-      <Header lastRefresh={data.metadata.dataRange.end} darkMode={darkMode} onToggleDark={() => setDarkMode(!darkMode)} />
-      <FilterControls zone={zone} onZoneChange={setZone} />
+      <Header
+        lastRefresh={data.metadata.dataRange.end}
+        darkMode={darkMode}
+        onToggleDark={() => setDarkMode(!darkMode)}
+        onShowTimeline={() => setShowTimeline(true)}
+      />
 
-      <main className="max-w-7xl mx-auto px-4 py-6 space-y-8">
-        {/* Policy Timeline */}
-        <PolicyTimeline policyDates={data.metadata.policyDates} />
+      <FilterControls
+        zone={zone}
+        onZoneChange={setZone}
+        dateRange={dateRange}
+        onDateRangeChange={setDateRange}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        dataYears={dataYears}
+      />
 
-        {/* KPI Cards */}
-        <section>
-          <SectionHeading
-            title="Key Metrics"
-            description="Year-over-year comparison of 2025 vs 2024 averages"
-          />
-          <KPICards monthly={filtered.monthly} citations={filtered.citations} />
-        </section>
+      {showTimeline && (
+        <TimelineModal
+          policyDates={data.metadata.policyDates}
+          onClose={() => setShowTimeline(false)}
+        />
+      )}
 
-        {/* Revenue Analysis */}
-        <section>
-          <SectionHeading
-            id="revenue-section"
-            title="Revenue Analysis"
-            description="Meter revenue trends with policy reform annotations"
-          />
-          <div className="space-y-6">
-            <RevenueTimeSeries data={filtered.monthly} lastCompleteMonth={lcm} />
-            <TotalRevenueStacked monthly={filtered.monthly} citations={filtered.citations} lastCompleteMonth={lcm} />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <YoYComparison data={filtered.monthly} lastCompleteMonth={lcm} />
-              <RevenueSplit data={filtered.monthly} />
-            </div>
-            <PaymentBreakdown data={filtered.payments} />
-          </div>
-        </section>
-
-        {/* Demand Analysis */}
-        <section>
-          <SectionHeading
-            id="occupancy-section"
-            title="Demand Analysis"
-            description="Transaction volume, implied occupancy, and day-of-week patterns"
-          />
-          <div className="space-y-6">
-            <TransactionTrend data={filtered.monthly} lastCompleteMonth={lcm} />
-            {data.zonePricing && (
-              <OccupancyTrend
-                data={filtered.monthly}
-                zonePricing={data.zonePricing}
-                lastCompleteMonth={lcm}
-              />
-            )}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {data.hourly && (
-                <HourlyActivity data={data.hourly} zone={zone} />
-              )}
-              <SundayImpact data={filtered.dowHeatmap} />
-            </div>
-          </div>
-        </section>
-
-        {/* Special Events — Padres Game Day Impact (Downtown/All only) */}
-        {showPadres && (
+      {activeTab === "dashboard" ? (
+        <main className="max-w-7xl mx-auto px-4 py-6 space-y-8">
+          {/* KPI Cards */}
           <section>
             <SectionHeading
-              id="special-events-section"
-              title="Special Event Impact"
-              description="Padres home game day analysis for Downtown — before and after Petco Park surge pricing"
+              title="Key Metrics"
+              description={dateRange
+                ? "Metrics for selected date range vs same period prior year"
+                : "Year-over-year comparison of 2025 vs 2024 averages"
+              }
             />
-            <PadresImpact data={data.gameday!} />
+            <KPICards
+              monthly={filtered.monthly}
+              allMonthly={filtered.allMonthly}
+              citations={filtered.citations}
+              allCitations={filtered.allCitations}
+              dateRange={dateRange}
+            />
           </section>
-        )}
 
-        {/* Citation Analysis */}
-        <section>
-          <SectionHeading
-            id="citations-section"
-            title="Citation Analysis"
-            description="Parking citation trends for meter-related violations"
-          />
-          <div className="space-y-6">
-            <CitationTrend data={filtered.citations} lastCompleteMonth={lcm} />
-            <TopViolations data={filtered.citations} />
-          </div>
-        </section>
+          {/* Revenue Analysis */}
+          <section>
+            <SectionHeading
+              id="revenue-section"
+              title="Revenue Analysis"
+              description="Meter revenue trends with policy reform annotations"
+            />
+            <div className="space-y-6">
+              <RevenueTimeSeries data={filtered.monthly} lastCompleteMonth={lcm} />
+              <TotalRevenueStacked monthly={filtered.monthly} citations={filtered.citations} lastCompleteMonth={lcm} />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <YoYComparison data={filtered.allMonthly} lastCompleteMonth={lcm} />
+                <RevenueSplit data={filtered.monthly} />
+              </div>
+              <PaymentBreakdown data={filtered.payments} />
+            </div>
+          </section>
 
-        {/* Meter Map */}
-        <section>
-          <SectionHeading
-            id="map-section"
-            title="Meter Locations"
-            description="Interactive map of parking meters in San Diego"
-          />
-          <MeterMap data={filtered.locations} />
-        </section>
-      </main>
+          {/* Demand Analysis */}
+          <section>
+            <SectionHeading
+              id="occupancy-section"
+              title="Demand Analysis"
+              description="Transaction volume, implied occupancy, and day-of-week patterns"
+            />
+            <div className="space-y-6">
+              <TransactionTrend data={filtered.monthly} lastCompleteMonth={lcm} />
+              {data.zonePricing && (
+                <OccupancyTrend
+                  data={filtered.monthly}
+                  zonePricing={data.zonePricing}
+                  lastCompleteMonth={lcm}
+                />
+              )}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {data.hourly && (
+                  <HourlyActivity data={data.hourly} zone={zone} />
+                )}
+                <SundayImpact data={filtered.dowHeatmap} />
+              </div>
+            </div>
+          </section>
+
+          {/* Special Events */}
+          {showPadres && (
+            <section>
+              <SectionHeading
+                id="special-events-section"
+                title="Special Event Impact"
+                description="Padres home game day analysis for Downtown — before and after Petco Park surge pricing"
+              />
+              <PadresImpact data={data.gameday!} />
+            </section>
+          )}
+
+          {/* Citation Analysis */}
+          <section>
+            <SectionHeading
+              id="citations-section"
+              title="Citation Analysis"
+              description="Parking citation trends for meter-related violations"
+            />
+            <div className="space-y-6">
+              <CitationTrend data={filtered.citations} lastCompleteMonth={lcm} />
+              <TopViolations data={filtered.citations} />
+            </div>
+          </section>
+        </main>
+      ) : (
+        <main className="max-w-7xl mx-auto px-4 py-6">
+          <MeterMap allLocations={data.locations} hourly={data.hourly} />
+        </main>
+      )}
 
       <Footer />
     </div>

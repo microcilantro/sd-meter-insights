@@ -2,33 +2,39 @@ interface HeaderProps {
   lastRefresh: string;
   darkMode: boolean;
   onToggleDark: () => void;
+  onShowTimeline: () => void;
 }
 
-export function Header({ lastRefresh, darkMode, onToggleDark }: HeaderProps) {
+export function Header({ lastRefresh, darkMode, onToggleDark, onShowTimeline }: HeaderProps) {
   return (
-    <header className="bg-[#003366] text-white py-6 px-4">
-      <div className="max-w-7xl mx-auto flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold">
+    <header className="bg-[#003366] text-white py-4 px-4">
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+        <div className="min-w-0">
+          <h1 className="text-xl md:text-2xl font-bold leading-tight">
             San Diego Parking Meter Reform Impact Dashboard
           </h1>
-          <p className="text-blue-200 mt-1 text-sm">
-            Analyzing the impact of the 2025 parking meter reforms on San Diego
-            {lastRefresh && (
-              <span className="ml-2 text-blue-300">
-                &middot; Data through {lastRefresh}
-              </span>
-            )}
-          </p>
+          {lastRefresh && (
+            <p className="text-blue-200 mt-0.5 text-xs">
+              Data through {lastRefresh}
+            </p>
+          )}
         </div>
-        <button
-          onClick={onToggleDark}
-          className="ml-4 mt-1 p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors text-sm"
-          aria-label="Toggle dark mode"
-          title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
-        >
-          {darkMode ? "\u2600\uFE0F" : "\uD83C\uDF19"}
-        </button>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <button
+            onClick={onShowTimeline}
+            className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors text-sm font-medium"
+          >
+            Timeline
+          </button>
+          <button
+            onClick={onToggleDark}
+            className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors text-sm"
+            aria-label="Toggle dark mode"
+            title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {darkMode ? "\u2600\uFE0F" : "\uD83C\uDF19"}
+          </button>
+        </div>
       </div>
     </header>
   );

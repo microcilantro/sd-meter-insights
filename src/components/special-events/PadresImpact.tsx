@@ -1,8 +1,7 @@
 import { useMemo } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  CartesianGrid, Cell, ComposedChart, Line,
-  ReferenceLine,
+  CartesianGrid, Cell,
 } from "recharts";
 import { ChartContainer } from "../shared/ChartContainer.tsx";
 import { CalcInfo } from "../shared/CalcInfo.tsx";
@@ -14,8 +13,6 @@ import type { GamedayData } from "../../types/data.ts";
 interface Props {
   data: GamedayData;
 }
-
-const SURCHARGE_DATE = "2025-09-01";
 
 const BUCKET_COLORS = ["#9ca3af", "#60a5fa", "#003366", "#C69214"];
 const BUCKET_LABELS = [
@@ -29,7 +26,6 @@ export function PadresImpact({ data }: Props) {
   const dark = useIsDark();
   const theme = getChartTheme(dark);
 
-  // Summary grouped bar data — 4 buckets
   const summaryData = useMemo(() => {
     const periods: Array<"pre-surcharge" | "post-surcharge"> = [
       "pre-surcharge",
@@ -55,172 +51,67 @@ export function PadresImpact({ data }: Props) {
     return result;
   }, [data.summary]);
 
-  // Daily time-series: line for all, custom dot for game days.
-  // Cap outliers at 99th percentile to prevent one bad data point from compressing the chart.
-  const dailyChartData = useMemo(() => {
-    const sorted = [...data.daily].sort((a, b) => a.revenue - b.revenue);
-    const p99idx = Math.floor(sorted.length * 0.99);
-    const cap = sorted[p99idx]?.revenue ?? Infinity;
-    return data.daily
-      .filter((d) => d.revenue <= cap)
-      .map((d) => ({
-        date: d.date,
-        revenue: d.revenue,
-        isGameDay: d.isGameDay,
-      }));
-  }, [data.daily]);
-
   return (
-    <div className="space-y-6">
-      {/* Summary comparison bars */}
-      <ChartContainer
-        title="Padres Game Day Revenue Impact"
-        subtitle="Average daily Downtown revenue — before and after Petco Park surge pricing (Sep 1, 2025)"
-      >
-        <ResponsiveContainer width="100%" height={280}>
-          <BarChart
-            data={summaryData}
-            margin={{ top: 10, right: 20, bottom: 60, left: 10 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" stroke={theme.grid} />
-            <XAxis
-              dataKey="label"
-              tick={{ fontSize: 10, fill: theme.tick, width: 80 }}
-              interval={0}
-              angle={-15}
-              textAnchor="end"
-              height={60}
-            />
-            <YAxis
-              tickFormatter={(v: number) => formatCurrency(v)}
-              tick={{ fontSize: 11, fill: theme.tick }}
-              width={70}
-            />
-            <Tooltip
-              formatter={(value: any, _: any, props: any) => [
-                `${formatCurrency(value as number)} avg/day`,
-                `${props.payload.sampleDays} sample days`,
-              ]}
-              contentStyle={{
-                backgroundColor: theme.tooltipBg,
-                borderColor: theme.tooltipBorder,
-                color: theme.tooltipText,
-              }}
-            />
-            <Bar dataKey="avgRevenue" name="Avg Daily Revenue" radius={[2, 2, 0, 0]}>
-              {summaryData.map((entry, i) => (
-                <Cell key={i} fill={entry.color} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+    <ChartContainer
+      title="Padres Game Day Revenue Impact"
+      subtitle="Average daily Downtown revenue — before and after Petco Park surge pricing (Sep 1, 2025)"
+    >
+      <ResponsiveContainer width="100%" height={280}>
+        <BarChart
+          data={summaryData}
+          margin={{ top: 10, right: 20, bottom: 60, left: 10 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" stroke={theme.grid} />
+          <XAxis
+            dataKey="label"
+            tick={{ fontSize: 10, fill: theme.tick, width: 80 }}
+            interval={0}
+            angle={-15}
+            textAnchor="end"
+            height={60}
+          />
+          <YAxis
+            tickFormatter={(v: number) => formatCurrency(v)}
+            tick={{ fontSize: 11, fill: theme.tick }}
+            width={70}
+          />
+          <Tooltip
+            formatter={(value: any, _: any, props: any) => [
+              `${formatCurrency(value as number)} avg/day`,
+              `${props.payload.sampleDays} sample days`,
+            ]}
+            contentStyle={{
+              backgroundColor: theme.tooltipBg,
+              borderColor: theme.tooltipBorder,
+              color: theme.tooltipText,
+            }}
+          />
+          <Bar dataKey="avgRevenue" name="Avg Daily Revenue" radius={[2, 2, 0, 0]}>
+            {summaryData.map((entry, i) => (
+              <Cell key={i} fill={entry.color} />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
 
-        {/* Legend */}
-        <div className="flex flex-wrap gap-4 mt-1 text-xs text-gray-500 dark:text-gray-400 justify-center">
-          {BUCKET_LABELS.map((label, i) => (
-            <span key={i} className="flex items-center gap-1">
-              <span
-                className="w-3 h-3 rounded-sm inline-block flex-shrink-0"
-                style={{ background: BUCKET_COLORS[i] }}
-              />
-              {label}
-            </span>
-          ))}
-        </div>
-      </ChartContainer>
+      <div className="flex flex-wrap gap-4 mt-1 text-xs text-gray-500 dark:text-gray-400 justify-center">
+        {BUCKET_LABELS.map((label, i) => (
+          <span key={i} className="flex items-center gap-1">
+            <span
+              className="w-3 h-3 rounded-sm inline-block flex-shrink-0"
+              style={{ background: BUCKET_COLORS[i] }}
+            />
+            {label}
+          </span>
+        ))}
+      </div>
 
-      {/* Daily revenue time series with game day dot markers */}
-      <ChartContainer
-        title="Downtown Daily Revenue with Padres Game Days"
-        subtitle="Orange dots mark Padres home game days. Dashed line marks Petco Park surge pricing start (Sep 1, 2025)."
-      >
-        <ResponsiveContainer width="100%" height={300}>
-          <ComposedChart
-            data={dailyChartData}
-            margin={{ top: 10, right: 20, bottom: 5, left: 10 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" stroke={theme.grid} />
-            <XAxis
-              dataKey="date"
-              tickFormatter={(v: string) => {
-                // Show month/year label only for the 1st of each month
-                if (v && v.slice(8) === "01") {
-                  const parts = v.split("-");
-                  const months = [
-                    "Jan","Feb","Mar","Apr","May","Jun",
-                    "Jul","Aug","Sep","Oct","Nov","Dec",
-                  ];
-                  return `${months[parseInt(parts[1]) - 1]} ${parts[0]}`;
-                }
-                return "";
-              }}
-              tick={{ fontSize: 10, fill: theme.tick }}
-              interval={0}
-            />
-            <YAxis
-              tickFormatter={(v: number) => formatCurrency(v)}
-              tick={{ fontSize: 11, fill: theme.tick }}
-              width={70}
-            />
-            <Tooltip
-              formatter={(value: any, _: any, props: any) => [
-                formatCurrency(value as number),
-                props.payload.isGameDay ? "Game Day Revenue" : "Daily Revenue",
-              ]}
-              labelFormatter={(label: any) => String(label)}
-              contentStyle={{
-                backgroundColor: theme.tooltipBg,
-                borderColor: theme.tooltipBorder,
-                color: theme.tooltipText,
-              }}
-            />
-            <Line
-              type="monotone"
-              dataKey="revenue"
-              stroke={theme.line}
-              strokeWidth={1}
-              name="Daily Revenue"
-              dot={(props: any) => {
-                const { cx, cy, payload } = props;
-                if (!payload.isGameDay) return <g key={props.key} />;
-                return (
-                  <circle
-                    key={props.key}
-                    cx={cx}
-                    cy={cy}
-                    r={4}
-                    fill="#C69214"
-                    stroke="#C69214"
-                  />
-                );
-              }}
-              activeDot={{ r: 5 }}
-            />
-            <ReferenceLine
-              x={SURCHARGE_DATE}
-              stroke="#CC3333"
-              strokeDasharray="4 4"
-              strokeWidth={1.5}
-              label={{
-                value: "Petco Zone Start",
-                position: "insideTopRight",
-                fill: "#CC3333",
-                fontSize: 9,
-              }}
-            />
-          </ComposedChart>
-        </ResponsiveContainer>
-        <p className="text-xs text-gray-400 mt-2">
-          Orange dots = Padres home game days. Downtown zone only.
-        </p>
-        <CalcInfo>
-          <p><strong>Game dates:</strong> Fetched from the MLB Stats API (statsapi.mlb.com) for the Padres (team ID 135). Only regular-season home games are included; postponed and cancelled games are excluded. Schedule is cached locally and refreshed each pipeline run.</p>
-          <p><strong>Revenue source:</strong> Downtown daily aggregated transaction files. Each day's total is the sum of all paid meter sessions in the Downtown zone.</p>
-          <p><strong>Period split:</strong> "Pre-surcharge" = before Sep 1, 2025. "Post-surcharge" = Sep 1, 2025 onward, when the Petco Park Special Event Zone ($10/hr surge pricing) was activated.</p>
-          <p><strong>Outlier cap (daily chart):</strong> The top 1% of daily revenue values are excluded from the time-series chart to prevent data-quality errors from collapsing the y-axis. This does not affect the summary bar averages.</p>
-          <p><strong>Sample size:</strong> Post-surcharge game days are limited to the 2025 Padres season (Sep–Oct 2025 home games only), so the sample is smaller than pre-surcharge.</p>
-        </CalcInfo>
-      </ChartContainer>
-    </div>
+      <CalcInfo>
+        <p><strong>Game dates:</strong> Fetched from the MLB Stats API (statsapi.mlb.com) for the Padres (team ID 135). Only regular-season home games are included; postponed and cancelled games are excluded.</p>
+        <p><strong>Revenue source:</strong> Downtown daily aggregated transaction files. Each day's total is the sum of all paid meter sessions in the Downtown zone.</p>
+        <p><strong>Period split:</strong> "Pre-surcharge" = before Sep 1, 2025. "Post-surcharge" = Sep 1, 2025 onward, when the Petco Park Special Event Zone ($10/hr surge pricing) was activated.</p>
+        <p><strong>Sample size:</strong> Post-surcharge game days are limited to the 2025 Padres season (Sep–Oct 2025 home games only), so the sample is smaller than pre-surcharge.</p>
+      </CalcInfo>
+    </ChartContainer>
   );
 }

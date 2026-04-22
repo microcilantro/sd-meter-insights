@@ -1,0 +1,407 @@
+[
+  {
+    "date": "2024-03-20",
+    "opponent": "Los Angeles Dodgers",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-03-28",
+    "opponent": "San Francisco Giants",
+    "dayNight": "day"
+  },
+  {
+    "date": "2024-03-29",
+    "opponent": "San Francisco Giants",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-03-30",
+    "opponent": "San Francisco Giants",
+    "dayNight": "day"
+  },
+  {
+    "date": "2024-03-31",
+    "opponent": "San Francisco Giants",
+    "dayNight": "day"
+  },
+  {
+    "date": "2024-04-01",
+    "opponent": "St. Louis Cardinals",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-04-02",
+    "opponent": "St. Louis Cardinals",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-04-03",
+    "opponent": "St. Louis Cardinals",
+    "dayNight": "day"
+  },
+  {
+    "date": "2024-04-08",
+    "opponent": "Chicago Cubs",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-04-09",
+    "opponent": "Chicago Cubs",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-04-10",
+    "opponent": "Chicago Cubs",
+    "dayNight": "day"
+  },
+  {
+    "date": "2024-04-19",
+    "opponent": "Toronto Blue Jays",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-04-20",
+    "opponent": "Toronto Blue Jays",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-04-21",
+    "opponent": "Toronto Blue Jays",
+    "dayNight": "day"
+  },
+  {
+    "date": "2024-04-26",
+    "opponent": "Philadelphia Phillies",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-04-27",
+    "opponent": "Philadelphia Phillies",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-04-28",
+    "opponent": "Philadelphia Phillies",
+    "dayNight": "day"
+  },
+  {
+    "date": "2024-04-29",
+    "opponent": "Cincinnati Reds",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-04-30",
+    "opponent": "Cincinnati Reds",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-05-01",
+    "opponent": "Cincinnati Reds",
+    "dayNight": "day"
+  },
+  {
+    "date": "2024-05-10",
+    "opponent": "Los Angeles Dodgers",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-05-11",
+    "opponent": "Los Angeles Dodgers",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-05-12",
+    "opponent": "Los Angeles Dodgers",
+    "dayNight": "day"
+  },
+  {
+    "date": "2024-05-13",
+    "opponent": "Colorado Rockies",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-05-14",
+    "opponent": "Colorado Rockies",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-05-15",
+    "opponent": "Colorado Rockies",
+    "dayNight": "day"
+  },
+  {
+    "date": "2024-05-24",
+    "opponent": "New York Yankees",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-05-25",
+    "opponent": "New York Yankees",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-05-26",
+    "opponent": "New York Yankees",
+    "dayNight": "day"
+  },
+  {
+    "date": "2024-05-27",
+    "opponent": "Miami Marlins",
+    "dayNight": "day"
+  },
+  {
+    "date": "2024-05-28",
+    "opponent": "Miami Marlins",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-05-29",
+    "opponent": "Miami Marlins",
+    "dayNight": "day"
+  },
+  {
+    "date": "2024-06-06",
+    "opponent": "Arizona Diamondbacks",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-06-07",
+    "opponent": "Arizona Diamondbacks",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-06-08",
+    "opponent": "Arizona Diamondbacks",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-06-09",
+    "opponent": "Arizona Diamondbacks",
+    "dayNight": "day"
+  },
+  {
+    "date": "2024-06-10",
+    "opponent": "Oakland Athletics",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-06-11",
+    "opponent": "Oakland Athletics",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-06-12",
+    "opponent": "Oakland Athletics",
+    "dayNight": "day"
+  },
+  {
+    "date": "2024-06-20",
+    "opponent": "Milwaukee Brewers",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-06-21",
+    "opponent": "Milwaukee Brewers",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-06-22",
+    "opponent": "Milwaukee Brewers",
+    "dayNight": "day"
+  },
+  {
+    "date": "2024-06-23",
+    "opponent": "Milwaukee Brewers",
+    "dayNight": "day"
+  },
+  {
+    "date": "2024-06-24",
+    "opponent": "Washington Nationals",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-06-25",
+    "opponent": "Washington Nationals",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-06-26",
+    "opponent": "Washington Nationals",
+    "dayNight": "day"
+  },
+  {
+    "date": "2024-07-05",
+    "opponent": "Arizona Diamondbacks",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-07-06",
+    "opponent": "Arizona Diamondbacks",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-07-07",
+    "opponent": "Arizona Diamondbacks",
+    "dayNight": "day"
+  },
+  {
+    "date": "2024-07-09",
+    "opponent": "Seattle Mariners",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-07-10",
+    "opponent": "Seattle Mariners",
+    "dayNight": "day"
+  },
+  {
+    "date": "2024-07-12",
+    "opponent": "Atlanta Braves",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-07-13",
+    "opponent": "Atlanta Braves",
+    "dayNight": "day"
+  },
+  {
+    "date": "2024-07-14",
+    "opponent": "Atlanta Braves",
+    "dayNight": "day"
+  },
+  {
+    "date": "2024-07-30",
+    "opponent": "Los Angeles Dodgers",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-07-31",
+    "opponent": "Los Angeles Dodgers",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-08-02",
+    "opponent": "Colorado Rockies",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-08-03",
+    "opponent": "Colorado Rockies",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-08-04",
+    "opponent": "Colorado Rockies",
+    "dayNight": "day"
+  },
+  {
+    "date": "2024-08-12",
+    "opponent": "Pittsburgh Pirates",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-08-13",
+    "opponent": "Pittsburgh Pirates",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-08-14",
+    "opponent": "Pittsburgh Pirates",
+    "dayNight": "day"
+  },
+  {
+    "date": "2024-08-19",
+    "opponent": "Minnesota Twins",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-08-20",
+    "opponent": "Minnesota Twins",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-08-21",
+    "opponent": "Minnesota Twins",
+    "dayNight": "day"
+  },
+  {
+    "date": "2024-08-22",
+    "opponent": "New York Mets",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-08-23",
+    "opponent": "New York Mets",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-08-24",
+    "opponent": "New York Mets",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-08-25",
+    "opponent": "New York Mets",
+    "dayNight": "day"
+  },
+  {
+    "date": "2024-09-02",
+    "opponent": "Detroit Tigers",
+    "dayNight": "day"
+  },
+  {
+    "date": "2024-09-04",
+    "opponent": "Detroit Tigers",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-09-05",
+    "opponent": "Detroit Tigers",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-09-06",
+    "opponent": "San Francisco Giants",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-09-07",
+    "opponent": "San Francisco Giants",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-09-08",
+    "opponent": "San Francisco Giants",
+    "dayNight": "day"
+  },
+  {
+    "date": "2024-09-16",
+    "opponent": "Houston Astros",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-09-17",
+    "opponent": "Houston Astros",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-09-18",
+    "opponent": "Houston Astros",
+    "dayNight": "day"
+  },
+  {
+    "date": "2024-09-20",
+    "opponent": "Chicago White Sox",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-09-21",
+    "opponent": "Chicago White Sox",
+    "dayNight": "night"
+  },
+  {
+    "date": "2024-09-22",
+    "opponent": "Chicago White Sox",
+    "dayNight": "day"
+  }
+]
