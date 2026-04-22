@@ -4,6 +4,7 @@ import {
   ResponsiveContainer, CartesianGrid, Legend, ReferenceLine,
 } from "recharts";
 import { ChartContainer } from "../shared/ChartContainer.tsx";
+import { CalcInfo } from "../shared/CalcInfo.tsx";
 import { formatNumber, formatCurrency, formatMonthYear } from "../../utils/formatters.ts";
 import { POLICY_DATES } from "../../utils/constants.ts";
 import { getChartTheme } from "../../utils/chartTheme.ts";
@@ -106,6 +107,11 @@ export function CitationTrend({ data, lastCompleteMonth }: Props) {
           })}
         </ComposedChart>
       </ResponsiveContainer>
+      <CalcInfo>
+        <p><strong>Meter-related only:</strong> Only three violation codes are included — expired meter (86.0126), overtime parking (86.0127A), and out-of-stall (86.0124). Street sweeping, residential permit, and other non-meter violations are excluded.</p>
+        <p><strong>Zone matching:</strong> Citations don't include a meter ID, only a street address. Addresses are normalized (uppercase, abbreviated street types) and matched against meter locations. Only ~34% of citations successfully match a zone; the remaining 66% are excluded from zone breakdowns but included in the "All" total.</p>
+        <p><strong>Fine totals:</strong> Based on the fine amount listed in the citation at time of issue, before any appeals or reductions.</p>
+      </CalcInfo>
     </ChartContainer>
   );
 }

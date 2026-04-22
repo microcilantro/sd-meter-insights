@@ -4,6 +4,7 @@ import {
   ResponsiveContainer, Legend, ReferenceLine,
 } from "recharts";
 import { ChartContainer } from "../shared/ChartContainer.tsx";
+import { CalcInfo } from "../shared/CalcInfo.tsx";
 import { getChartTheme } from "../../utils/chartTheme.ts";
 import { useIsDark } from "../../hooks/useDarkMode.ts";
 import { DAY_NAMES } from "../../utils/constants.ts";
@@ -160,6 +161,16 @@ export function HourlyActivity({ data, zone }: Props) {
               v === "preReform" ? "Pre-reform (2024)" : "Post-reform (2025+)"
             }
           />
+          {/* Game-start marker — Padres games typically begin ~7pm */}
+          {eventFilter === "game" && (
+            <ReferenceLine
+              x="7pm"
+              stroke="#FF6B00"
+              strokeDasharray="5 3"
+              strokeWidth={1.5}
+              label={{ value: "Typical game start", position: "insideTopLeft", fill: "#FF6B00", fontSize: 9 }}
+            />
+          )}
           <Line
             type="monotone"
             dataKey="preReform"
@@ -181,9 +192,18 @@ export function HourlyActivity({ data, zone }: Props) {
           />
         </LineChart>
       </ResponsiveContainer>
-      <p className="text-xs text-gray-400 mt-2">
-        Payment occupancy = paid meter-hours ÷ total meter capacity. Lower bound — excludes unpaid parking. Game day filter applies to Downtown only.
-      </p>
+      {eventFilter === "game" && (
+        <p className="text-xs text-amber-600 dark:text-amber-400 mt-2 bg-amber-50 dark:bg-amber-900/20 rounded px-2 py-1">
+          ⚠ Payment occupancy drops at game time because time-limited meters expire while cars remain inside the stadium. The pre-game arrival surge (2–6pm) is the meaningful signal for game-day demand.
+        </p>
+      )}
+      <CalcInfo>
+        <p><strong>Source:</strong> Raw transaction files (~370 MB/year) which include a timestamp for each individual paid session. The daily/monthly files do not contain time-of-day data.</p>
+        <p><strong>Carry-forward:</strong> Each transaction is counted as occupying a space for every hour from its start time through its expire time (from <em>date_trans_start</em> to <em>date_meter_expire</em>). Carry-forward is capped at the individual meter's enforcement end hour so sessions don't bleed into hours when that meter is no longer active.</p>
+        <p><strong>Denominator:</strong> For each hour H, only meters whose enforcement window covers hour H are counted (e.g. a meter enforced 8am–6pm is not in the denominator at 7pm). This prevents artificially low readings during off-hours.</p>
+        <p><strong>Game-day paradox:</strong> On game days, payment occupancy dips sharply at game time (~7pm) because most Downtown meters have 1–2 hour time limits — sessions paid before the game expire while the car remains in the space. The occupancy drop is real in payment terms but not in physical presence terms. Look at the 2–6pm window for the true pre-game demand signal.</p>
+        <p><strong>Values over 100%:</strong> Possible for multi-space meters (one pole ID covers several bays), or when a meter's enforce window extends past the hour boundary used in our count.</p>
+      </CalcInfo>
     </ChartContainer>
   );
 }

@@ -4,6 +4,7 @@ import {
   CartesianGrid, ReferenceLine,
 } from "recharts";
 import { ChartContainer } from "../shared/ChartContainer.tsx";
+import { CalcInfo } from "../shared/CalcInfo.tsx";
 import { formatMonthYear } from "../../utils/formatters.ts";
 import { POLICY_DATES } from "../../utils/constants.ts";
 import { getChartTheme } from "../../utils/chartTheme.ts";
@@ -111,6 +112,13 @@ export function OccupancyTrend({ data, zonePricing, lastCompleteMonth }: Props) 
           })}
         </LineChart>
       </ResponsiveContainer>
+      <CalcInfo>
+        <p><strong>Formula:</strong> Occupancy = (monthly revenue ÷ effective hourly rate) ÷ (meter count × enforcement hours/day × enforced days/month).</p>
+        <p><strong>Effective hourly rate:</strong> The current posted rate ($2.50/hr for most zones) is used for post-reform months. Pre-reform months use half that rate ($1.25/hr) because rates doubled on Jan 31, 2025.</p>
+        <p><strong>Enforcement hours:</strong> Capped at 10 hrs/day and 6 days/week for months before Sep 1, 2025 (when extended hours and Sunday enforcement began). Post-reform values use the current schedule from the meter locations file (~11.9 hrs/day, ~6 days/wk for Downtown).</p>
+        <p><strong>Lower bound only:</strong> This measures paid meter-hours, not physical vehicle presence. Cars parked without paying, cars in spaces after meter expiry, and free on-street spots are not counted. True occupancy is higher.</p>
+        <p><strong>85% target:</strong> Based on Donald Shoup's parking economics research — at 85% occupancy roughly 1 in 7 spaces is always available, minimizing circling while maximising revenue.</p>
+      </CalcInfo>
     </ChartContainer>
   );
 }

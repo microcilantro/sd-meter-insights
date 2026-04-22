@@ -4,6 +4,7 @@ import {
   CartesianGrid, ReferenceLine,
 } from "recharts";
 import { ChartContainer } from "../shared/ChartContainer.tsx";
+import { CalcInfo } from "../shared/CalcInfo.tsx";
 import { formatCurrency, formatMonthYear } from "../../utils/formatters.ts";
 import { POLICY_DATES } from "../../utils/constants.ts";
 import { getChartTheme } from "../../utils/chartTheme.ts";
@@ -90,6 +91,13 @@ export function RevenueTimeSeries({ data, lastCompleteMonth }: Props) {
           })}
         </LineChart>
       </ResponsiveContainer>
+      <CalcInfo>
+        <p><strong>Source:</strong> City of San Diego monthly aggregated transaction files (one CSV per year). Each row represents one meter-pole's total for a given month.</p>
+        <p><strong>Amount:</strong> The city stores transaction amounts in cents; values are divided by 100 to convert to dollars.</p>
+        <p><strong>Zone assignment:</strong> Each pole ID is joined to its zone via the meter locations file. Poles that don't appear in the locations file are excluded.</p>
+        <p><strong>Outlier filter:</strong> Any pole-month record where the average transaction amount exceeds $200 is dropped as a data-quality error (e.g. one meter registered $130,563/transaction in Jan 2026 — a firmware glitch).</p>
+        <p><strong>Partial months:</strong> The current in-progress month is excluded so charts always end on a complete month.</p>
+      </CalcInfo>
     </ChartContainer>
   );
 }

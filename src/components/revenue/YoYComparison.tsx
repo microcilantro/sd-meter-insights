@@ -4,6 +4,7 @@ import {
   CartesianGrid, Legend,
 } from "recharts";
 import { ChartContainer } from "../shared/ChartContainer.tsx";
+import { CalcInfo } from "../shared/CalcInfo.tsx";
 import { formatCurrency } from "../../utils/formatters.ts";
 import { MONTH_NAMES, CHART_COLORS } from "../../utils/constants.ts";
 import { getChartTheme } from "../../utils/chartTheme.ts";
@@ -73,6 +74,11 @@ export function YoYComparison({ data, lastCompleteMonth }: Props) {
           ))}
         </BarChart>
       </ResponsiveContainer>
+      <CalcInfo>
+        <p><strong>Purpose:</strong> Groups the same calendar month across years (Jan 2023 vs Jan 2024 vs Jan 2025) to separate seasonal patterns from reform-driven changes.</p>
+        <p><strong>Source:</strong> Same monthly aggregated transaction files as the revenue time series. The same outlier filter ($200/transaction cap) applies.</p>
+        <p><strong>Interpretation:</strong> A bar that's taller in 2025 than 2024 for the same month means the reform increased revenue for that month — even after accounting for seasonal patterns. Rate doubling on Jan 31, 2025 means February 2025 onward is the first full post-doubling month.</p>
+      </CalcInfo>
     </ChartContainer>
   );
 }

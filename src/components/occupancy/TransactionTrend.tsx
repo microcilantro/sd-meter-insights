@@ -4,6 +4,7 @@ import {
   CartesianGrid, ReferenceLine,
 } from "recharts";
 import { ChartContainer } from "../shared/ChartContainer.tsx";
+import { CalcInfo } from "../shared/CalcInfo.tsx";
 import { formatNumber, formatMonthYear } from "../../utils/formatters.ts";
 import { POLICY_DATES } from "../../utils/constants.ts";
 import { getChartTheme } from "../../utils/chartTheme.ts";
@@ -84,6 +85,11 @@ export function TransactionTrend({ data, lastCompleteMonth }: Props) {
           })}
         </LineChart>
       </ResponsiveContainer>
+      <CalcInfo>
+        <p><strong>Source:</strong> Monthly aggregated transaction files. Each paid parking session — regardless of duration or amount — counts as one transaction.</p>
+        <p><strong>Zone assignment:</strong> Joined via pole ID to the meter locations file. Unmatched poles are excluded.</p>
+        <p><strong>Trend interpretation:</strong> Transaction volume measures how many times a meter was paid, not how long or how much. A drop in transactions after the rate doubling suggests some demand was suppressed, though the effect was small (~2.4% citywide).</p>
+      </CalcInfo>
     </ChartContainer>
   );
 }

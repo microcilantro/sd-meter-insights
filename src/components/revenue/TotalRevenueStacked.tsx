@@ -4,6 +4,7 @@ import {
   CartesianGrid, Legend, ReferenceLine,
 } from "recharts";
 import { ChartContainer } from "../shared/ChartContainer.tsx";
+import { CalcInfo } from "../shared/CalcInfo.tsx";
 import { formatCurrency, formatMonthYear } from "../../utils/formatters.ts";
 import { POLICY_DATES } from "../../utils/constants.ts";
 import { getChartTheme } from "../../utils/chartTheme.ts";
@@ -103,6 +104,12 @@ export function TotalRevenueStacked({ monthly, citations, lastCompleteMonth }: P
       <p className="text-xs text-gray-400 mt-2">
         Note: Citation fines cover meter violations only (~34% zone-match rate).
       </p>
+      <CalcInfo>
+        <p><strong>Meter revenue (blue):</strong> Sum of all paid parking transactions from the monthly aggregated files. Same data as the Monthly Meter Revenue chart.</p>
+        <p><strong>Citation fines (gold):</strong> Sum of fine amounts for meter-related violations only (expired, overtime, out-of-stall). Covers citations that could be matched to a zone via address (~34% match rate). The true citywide citation total is approximately 3× higher.</p>
+        <p><strong>Stacking:</strong> The two revenue streams are independent — a citation fine doesn't reduce meter revenue. Together they represent the total financial impact of the meter system on parkers.</p>
+        <p><strong>Note:</strong> Citation fine revenue goes to the city's general fund; it is separate from the meter revenue split between the General Fund and Community Parking Districts.</p>
+      </CalcInfo>
     </ChartContainer>
   );
 }

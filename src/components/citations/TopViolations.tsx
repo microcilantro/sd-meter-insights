@@ -4,6 +4,7 @@ import {
   CartesianGrid, Legend,
 } from "recharts";
 import { ChartContainer } from "../shared/ChartContainer.tsx";
+import { CalcInfo } from "../shared/CalcInfo.tsx";
 import { formatNumber } from "../../utils/formatters.ts";
 import { getChartTheme } from "../../utils/chartTheme.ts";
 import { useIsDark } from "../../hooks/useDarkMode.ts";
@@ -85,6 +86,11 @@ export function TopViolations({ data }: Props) {
           <Bar dataKey="Post-Reform" fill={theme.barPrimary} radius={[0, 2, 2, 0]} />
         </BarChart>
       </ResponsiveContainer>
+      <CalcInfo>
+        <p><strong>Violation codes included:</strong> Expired meter (86.0126), overtime parking (86.0127A), and out-of-stall (86.0124) only. These are the violations directly related to meter payment compliance.</p>
+        <p><strong>Period split:</strong> "Pre-reform" = all citations before Jan 31, 2025 (the rate doubling date). "Post-reform" = Jan 31, 2025 onward. Counts are normalized to monthly averages so different-length periods are comparable.</p>
+        <p><strong>Zone matching:</strong> ~34% match rate — citations without a matchable address are excluded from zone-level views but included in "All."</p>
+      </CalcInfo>
     </ChartContainer>
   );
 }

@@ -5,6 +5,7 @@ import {
   ReferenceLine,
 } from "recharts";
 import { ChartContainer } from "../shared/ChartContainer.tsx";
+import { CalcInfo } from "../shared/CalcInfo.tsx";
 import { formatCurrency } from "../../utils/formatters.ts";
 import { getChartTheme } from "../../utils/chartTheme.ts";
 import { useIsDark } from "../../hooks/useDarkMode.ts";
@@ -212,6 +213,13 @@ export function PadresImpact({ data }: Props) {
         <p className="text-xs text-gray-400 mt-2">
           Orange dots = Padres home game days. Downtown zone only.
         </p>
+        <CalcInfo>
+          <p><strong>Game dates:</strong> Fetched from the MLB Stats API (statsapi.mlb.com) for the Padres (team ID 135). Only regular-season home games are included; postponed and cancelled games are excluded. Schedule is cached locally and refreshed each pipeline run.</p>
+          <p><strong>Revenue source:</strong> Downtown daily aggregated transaction files. Each day's total is the sum of all paid meter sessions in the Downtown zone.</p>
+          <p><strong>Period split:</strong> "Pre-surcharge" = before Sep 1, 2025. "Post-surcharge" = Sep 1, 2025 onward, when the Petco Park Special Event Zone ($10/hr surge pricing) was activated.</p>
+          <p><strong>Outlier cap (daily chart):</strong> The top 1% of daily revenue values are excluded from the time-series chart to prevent data-quality errors from collapsing the y-axis. This does not affect the summary bar averages.</p>
+          <p><strong>Sample size:</strong> Post-surcharge game days are limited to the 2025 Padres season (Sep–Oct 2025 home games only), so the sample is smaller than pre-surcharge.</p>
+        </CalcInfo>
       </ChartContainer>
     </div>
   );

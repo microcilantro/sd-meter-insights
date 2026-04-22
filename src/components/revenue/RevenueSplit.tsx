@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { ChartContainer } from "../shared/ChartContainer.tsx";
+import { CalcInfo } from "../shared/CalcInfo.tsx";
 import { formatCurrencyFull } from "../../utils/formatters.ts";
 import type { MonthlyRevenueRecord } from "../../types/data.ts";
 
@@ -46,6 +47,12 @@ export function RevenueSplit({ data }: Props) {
         Note: Illustrative split based on current revenue. Actual allocations
         may differ due to net revenue calculations.
       </p>
+      <CalcInfo>
+        <p><strong>Old split (55/45):</strong> Under the prior policy, 55% of net meter revenue went to the City's General Fund and 45% to Community Parking Districts (used for local transportation improvements).</p>
+        <p><strong>New split (85/15):</strong> The 2025 reform shifted the split to 85% General Fund / 15% Community Parking Districts — meaning significantly less funding flows to neighborhood parking programs.</p>
+        <p><strong>Dollar amounts:</strong> Calculated by applying each percentage to the average monthly revenue across all 2025 months in this dataset. These are illustrative — the city calculates splits on net revenue (after operating costs) which is not available in this dataset.</p>
+        <p><strong>New split segment:</strong> The 15% district segment is too narrow to display a dollar amount — hover to see the value in the tooltip.</p>
+      </CalcInfo>
     </ChartContainer>
   );
 }
