@@ -192,17 +192,13 @@ export function HourlyActivity({ data, zone }: Props) {
           />
         </LineChart>
       </ResponsiveContainer>
-      {eventFilter === "game" && (
-        <p className="text-xs text-amber-600 dark:text-amber-400 mt-2 bg-amber-50 dark:bg-amber-900/20 rounded px-2 py-1">
-          ⚠ Payment occupancy drops at game time because time-limited meters expire while cars remain inside the stadium. The pre-game arrival surge (2–6pm) is the meaningful signal for game-day demand.
-        </p>
-      )}
       <CalcInfo>
-        <p><strong>Source:</strong> Raw transaction files (~370 MB/year) which include a timestamp for each individual paid session. The daily/monthly files do not contain time-of-day data.</p>
-        <p><strong>Carry-forward:</strong> Each transaction is counted as occupying a space for every hour from its start time through its expire time (from <em>date_trans_start</em> to <em>date_meter_expire</em>). Carry-forward is capped at the individual meter's enforcement end hour so sessions don't bleed into hours when that meter is no longer active.</p>
-        <p><strong>Denominator:</strong> For each hour H, only meters whose enforcement window covers hour H are counted (e.g. a meter enforced 8am–6pm is not in the denominator at 7pm). This prevents artificially low readings during off-hours.</p>
-        <p><strong>Game-day paradox:</strong> On game days, payment occupancy dips sharply at game time (~7pm) because most Downtown meters have 1–2 hour time limits — sessions paid before the game expire while the car remains in the space. The occupancy drop is real in payment terms but not in physical presence terms. Look at the 2–6pm window for the true pre-game demand signal.</p>
-        <p><strong>Values over 100%:</strong> Possible for multi-space meters (one pole ID covers several bays), or when a meter's enforce window extends past the hour boundary used in our count.</p>
+        <p><strong>Source:</strong> Raw transaction files (~370 MB/year) which include start and expiry timestamps for each paid session. The daily/monthly summary files do not contain time-of-day data.</p>
+        <p><strong>Carry-forward:</strong> Each transaction is counted as occupying a space for every hour it spans — from its start time (<em>date_trans_start</em>) through its expiry (<em>date_meter_expire</em>). A 3-hour session paid at 5pm counts as occupied at 5pm, 6pm, 7pm, and 8pm, even if the meter's enforcement window ended at 6pm. This correctly captures pre-game parking sessions that extend into game time.</p>
+        <p><strong>Denominator:</strong> The peak number of active meters in the zone across all hours of the day. This stays constant regardless of how many meters are in enforcement at any particular hour, so carry-forward sessions are properly represented relative to the full parking supply.</p>
+        <p><strong>Game-day effect (pre-reform):</strong> In 2024, game days show consistently higher occupancy than non-game days from 8am through 8pm — peaking ~5–8 percentage points above non-game levels in the afternoon as fans arrive.</p>
+        <p><strong>Game-day post-reform:</strong> In 2025, game-day evening occupancy dips relative to non-game days. This is consistent with the September 1, 2025 Petco Park Special Event Zone surcharge ($10/hr) actively deterring meter parking on game days — parkers may be choosing garages or transit instead.</p>
+        <p><strong>Values over 100%:</strong> Possible for multi-space meters (one pole ID covers several bays) where a single transaction represents multiple occupied spaces.</p>
       </CalcInfo>
     </ChartContainer>
   );

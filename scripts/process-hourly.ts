@@ -34,7 +34,6 @@ function parseTimeHour(s: string): number {
 /**
  * For each zone and each hour 0–23, count how many meters are active
  * (i.e. timeStart <= hour < timeEnd).
- * Used as the denominator when computing hourly occupancy.
  */
 function buildActiveMetersByHour(
   poleToLocation: Map<string, MeterLocation>
@@ -69,13 +68,33 @@ function buildActiveMetersByHour(
 }
 
 /**
+ * Returns the peak (maximum) active meter count across all hours for each zone.
+ * Used as a stable denominator for occupancy so that carry-forward sessions
+ * (e.g. a 3-hour session paid at 5pm that extends into game time) are counted
+ * relative to the full parking supply, not an artificially small set of
+ * "enforcement-active" meters at that hour.
+ */
+function buildPeakMetersByZone(
+  activeMetersByHour: Map<string, number[]>
+): Map<string, number> {
+  const result = new Map<string, number>();
+  for (const [zone, counts] of activeMetersByHour) {
+    result.set(zone, Math.max(...counts));
+  }
+  return result;
+}
+
+/**
  * Processes raw transaction files to build hourly payment occupancy profiles.
  *
  * For each transaction, we expand it across every hour it covers
  * (from start hour through expire hour) and count meter-hours occupied.
  *
- * Denominator per hour H = meters that are *active* at hour H (not all meters).
- * This ensures occupancy is only computed relative to meters actually operating.
+ * Denominator = peak active meter count for the zone (constant across all hours).
+ * This correctly handles carry-forward: a session paid at 5pm for 3 hours is
+ * still occupying a space at 7pm and 8pm even if enforcement ends at 6pm.
+ * Using a per-hour enforcement denominator would cause a false drop in occupancy
+ * after enforcement ends (the infamous "game-time paradox").
  *
  * "pre-reform"  = before Feb 2025 (rates doubled Jan 31 2025)
  * "post-reform" = Feb 2025 onwards
@@ -89,8 +108,10 @@ export function processHourlyActivity(
     "All", "Downtown", "Uptown", "Mid-City", "Pacific Beach", "City", "Balboa Park",
   ]);
 
-  // Active meter count per (zone, hour)
+  // Active meter count per (zone, hour) — used to determine valid hours
   const activeMetersByHour = buildActiveMetersByHour(poleToLocation);
+  // Peak meter count per zone — used as stable occupancy denominator
+  const peakMetersByZone = buildPeakMetersByZone(activeMetersByHour);
 
   // key → { occupiedSum, dates }
   const agg = new Map<string, { occupiedSum: number; dates: Set<string> }>();
@@ -154,20 +175,12 @@ export function processHourlyActivity(
       const zone = location?.zone ?? "Unknown";
       if (!validZones.has(zone)) continue;
 
-      // Cap carry-forward at this meter's own last active hour.
-      // activeMetersByHour uses `h < ceil(timeEnd)`, so the last active hour
-      // is ceil(timeEnd)-1. Aligning the carry-forward cap to the same boundary
-      // prevents bleed into hours where this meter is no longer in the
-      // denominator, which would artificially spike occupancy at enforcement
-      // boundaries (e.g. the 8pm cliff from 2311 → 533 active Downtown meters).
-      const meterEndHour = location ? parseTimeHour(location.timeEnd) : 24;
-      const cappedExpireHour = meterEndHour > 0
-        ? Math.min(effectiveExpireHour, Math.ceil(meterEndHour) - 1)
-        : effectiveExpireHour;
-
       const isGameDay = zone === "Downtown" && gameDates.has(dateStr);
 
-      for (let h = startHour; h <= cappedExpireHour; h++) {
+      // Carry the session forward through every hour it covers, up to the
+      // effectiveExpireHour. No enforcement-end cap — a car paid until 9pm is
+      // still occupying a space at 8pm even if enforcement ended at 8pm.
+      for (let h = startHour; h <= effectiveExpireHour; h++) {
         for (const z of [zone, "All"]) {
           const gd = z === "All" ? false : isGameDay;
           const key = `${h}|${dow}|${z}|${gd ? "1" : "0"}|${period}`;
@@ -191,12 +204,15 @@ export function processHourlyActivity(
     const period = parts[4] as "pre-reform" | "post-reform";
     const sampleDays = entry.dates.size;
 
-    // Use active meter count at this specific hour as denominator
-    const activeMeters = activeMetersByHour.get(zone)?.[hour] ?? 0;
-    if (activeMeters === 0) continue; // skip hours when no meters are active
+    // Use the zone's peak active meter count as a stable denominator.
+    // This ensures carry-forward sessions (paid past enforcement end) are
+    // counted relative to the full parking supply, preventing artificial
+    // drops after enforcement hours end.
+    const peakMeters = peakMetersByZone.get(zone) ?? 0;
+    if (peakMeters === 0) continue; // no meters in this zone at all
 
     const avgOccupied = sampleDays > 0 ? entry.occupiedSum / sampleDays : 0;
-    const occupancy = Math.min((avgOccupied / activeMeters) * 100, 120);
+    const occupancy = Math.min((avgOccupied / peakMeters) * 100, 120);
 
     records.push({
       hour, dow, zone, isGameDay, period,
